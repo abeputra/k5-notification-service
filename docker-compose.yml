@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  db-notify:
+    image: postgres:15-alpine
+    container_name: K5-db-notify
+    environment:
+      POSTGRES_USER: notify_user
+      POSTGRES_PASSWORD: notify_pass123
+      POSTGRES_DB: notify_db
+    volumes:
+      - notify_data:/var/lib/postgresql/data
+    networks:
+      - k5-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notify_user -d notify_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  svc-notify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: K5-svc-notify
+    ports:
+      - "8085:8080"
+    env_file: .env
+    depends_on:
+      db-notify:
+        condition: service_healthy
+    networks:
+      - k5-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  k5-net:
+    driver: bridge
+
+volumes:
+  notify_data:

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelance Hub - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-height: 100vh; color: #333; }
+    .navbar { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
+    .navbar h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    .navbar .badge { background: #43a047; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .nav-links a { color: #c5cae9; text-decoration: none; margin-left: 20px; font-size: 14px; transition: color 0.2s; }
+    .nav-links a:hover { color: white; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .user-card { background: white; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 5px solid #3f51b5; }
+    .avatar { width: 56px; height: 56px; background: linear-gradient(135deg, #3f51b5, #7c4dff); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; font-weight: bold; flex-shrink: 0; }
+    .user-info h2 { font-size: 18px; color: #1a237e; margin-bottom: 4px; }
+    .user-info p { font-size: 13px; color: #666; margin-bottom: 2px; }
+    .skill-tag { display: inline-block; background: #e8eaf6; color: #3f51b5; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin: 2px; font-weight: 500; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h3 { font-size: 16px; color: #1a237e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eaf6; display: flex; align-items: center; gap: 8px; }
+    .card h3 .icon { font-size: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    input, textarea, select { width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63,81,181,0.1); }
+    textarea { height: 80px; resize: vertical; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: #3f51b5; color: white; }
+    .btn-primary:hover { background: #303f9f; transform: translateY(-1px); }
+    .btn-success { background: #43a047; color: white; }
+    .btn-success:hover { background: #388e3c; transform: translateY(-1px); }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-warning:hover { background: #f57c00; }
+    .btn-danger { background: #e53935; color: white; }
+    .btn-danger:hover { background: #c62828; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .skill-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-checkbox { display: flex; align-items: center; gap: 6px; background: #f5f5f5; padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-size: 13px; }
+    .skill-checkbox:hover { background: #e8eaf6; }
+    .skill-checkbox input[type=checkbox] { width: auto; margin: 0; }
+    .skill-checkbox.checked { background: #e8eaf6; color: #3f51b5; font-weight: 600; }
+    .project-list { max-height: 350px; overflow-y: auto; }
+    .project-item { border: 1.5px solid #e8eaf6; border-radius: 10px; padding: 14px; margin-bottom: 10px; transition: border-color 0.2s; }
+    .project-item:hover { border-color: #3f51b5; }
+    .project-title { font-weight: 600; color: #1a237e; font-size: 15px; margin-bottom: 6px; }
+    .project-meta { font-size: 12px; color: #666; }
+    .project-skills { margin-top: 6px; }
+    .project-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .status-open { background: #e8f5e9; color: #2e7d32; }
+    .status-in_progress { background: #fff3e0; color: #e65100; }
+    .status-completed { background: #e3f2fd; color: #1565c0; }
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 14px; }
+    .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #4caf50; }
+    .alert-error { background: #ffebee; color: #c62828; border-left: 4px solid #f44336; }
+    .alert-info { background: #e3f2fd; color: #1565c0; border-left: 4px solid #2196f3; }
+    .loading { opacity: 0.5; pointer-events: none; }
+    .log-item { padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+    .log-item:last-child { border-bottom: none; }
+    .log-sent { color: #2e7d32; }
+    .log-failed { color: #c62828; }
+    .section-title { font-size: 22px; font-weight: 700; color: #1a237e; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>🚀 Freelance Hub</h1>
+    <div class="nav-links">
+      <a href="/">Dashboard</a>
+      <a href="/admin">Admin</a>
+      <span class="badge">Kelompok 5</span>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- User Card -->
+    <div class="user-card" id="user-card">
+      <div class="avatar" id="user-avatar">E</div>
+      <div class="user-info">
+        <h2 id="user-name">Loading...</h2>
+        <p id="user-email">-</p>
+        <p id="user-phone">-</p>
+        <div id="user-skills" style="margin-top: 6px;"></div>
+      </div>
+    </div>
+
+    <div class="section-title">📋 Dashboard</div>
+
+
+    <!-- Integration Status Panel -->
+    <div class="card" style="margin-bottom:20px;border-left:4px solid #ff9800;">
+      <h3><span class="icon">🔗</span> Status Integrasi Kelompok Lain</h3>
+      <div id="integration-status" style="display:flex;gap:12px;flex-wrap:wrap;">
+        <span style="color:#999;font-size:13px;">Memuat status...</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm" style="background:#ff9800;color:white;" onclick="syncFromK2()">🔄 Sync Proyek dari K2</button>
+        <button class="btn btn-sm" style="background:#f5f5f5;color:#444;" onclick="loadIntegrationStatus()">↺ Refresh Status</button>
+      </div>
+      <div id="sync-result" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="grid">
+      <!-- Posting Proyek Baru -->
+      <div class="card">
+        <h3><span class="icon">📌</span> Post Proyek Baru (Dummy Kelompok 2)</h3>
+        <div id="post-alert"></div>
+        <div class="form-group">
+          <label>Judul Proyek *</label>
+          <input type="text" id="proj-title" placeholder="Contoh: Desain UI Website Startup">
+        </div>
+        <div class="form-group">
+          <label>Deskripsi</label>
+          <textarea id="proj-desc" placeholder="Deskripsi singkat proyek..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Budget</label>
+          <input type="text" id="proj-budget" placeholder="Contoh: Rp 2.000.000">
+        </div>
+        <div class="form-group">
+          <label>Klien / Perusahaan</label>
+          <input type="text" id="proj-client" placeholder="Nama perusahaan/klien">
+        </div>
+        <div class="form-group">
+          <label>Skill yang Dibutuhkan (pilih minimal 1)</label>
+          <div class="skill-checkboxes" id="skill-checkboxes">
+            <!-- Diisi JS -->
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="postProject()">
+          📤 Post & Trigger Notifikasi Email
+        </button>
+      </div>
+
+      <!-- Daftar Proyek -->
+      <div class="card">
+        <h3><span class="icon">📂</span> Proyek Terdaftar</h3>
+        <div id="projects-list" class="project-list">
+          <p style="color: #999; text-align: center; padding: 20px;">Memuat proyek...</p>
+        </div>
+        <button class="btn btn-sm" style="margin-top: 12px; background: #f5f5f5; color: #444;" onclick="loadProjects()">🔄 Refresh</button>
+      </div>
+
+      <!-- Log Notifikasi -->
+      <div class="card">
+        <h3><span class="icon">📧</span> Log Notifikasi Email</h3>
+        <div id="notif-log" style="max-height: 300px; overflow-y: auto;">
+          <p style="color: #999; text-align: center; padding: 20px;">Memuat log...</p>
+        </div>
+        <button class="btn btn-sm" style="margin-top: 12px; background: #f5f5f5; color: #444;" onclick="loadNotifLog()">🔄 Refresh</button>
+      </div>
+
+      <!-- Info Redis Cache -->
+      <div class="card">
+        <h3><span class="icon">⚡</span> Redis Cache & Info Teknis</h3>
+        <div id="cache-info">
+          <p style="color: #999;">Klik proyek untuk test caching...</p>
+        </div>
+        <div style="margin-top: 16px;">
+          <h4 style="color: #1a237e; margin-bottom: 8px; font-size: 14px;">📡 Endpoint API</h4>
+          <div style="background: #f5f5f5; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; line-height: 1.8;">
+            <div><span style="color: #43a047;">GET</span> /api/users/me</div>
+            <div><span style="color: #43a047;">GET</span> /api/projects</div>
+            <div><span style="color: #e91e63;">POST</span> /api/projects</div>
+            <div><span style="color: #e91e63;">POST</span> /api/announcements/accept</div>
+            <div><span style="color: #e91e63;">POST</span> /api/pdf/generate-contract</div>
+            <div><span style="color: #43a047;">GET</span> /api/announcements/project/:id</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_SKILLS = [
+      'Documentation', 'Multimedia', 'Event Management', 'Event Planning',
+      'UI/UX Design', 'Frontend', 'Backend', 'Mobile Dev',
+      'Public Speaking', 'Marketing', 'Videografi', 'Fotografi', 'Cooking'
+    ];
+
+    // Render skill checkboxes
+    const skillContainer = document.getElementById('skill-checkboxes');
+    ALL_SKILLS.forEach(skill => {
+      const label = document.createElement('label');
+      label.className = 'skill-checkbox';
+      label.innerHTML = `<input type="checkbox" value="${skill}"> ${skill}`;
+      label.querySelector('input').addEventListener('change', function() {
+        label.classList.toggle('checked', this.checked);
+      });
+      skillContainer.appendChild(label);
+    });
+
+
+    // Integration status
+    async function loadIntegrationStatus() {
+      try {
+        const res = await fetch('/api/integration/status');
+        const result = await res.json();
+        const container = document.getElementById('integration-status');
+        const services = result.services || {};
+        const serviceNames = {
+          identity: 'K1 Identity', bidding: 'K2 Bidding',
+          matching: 'K3 Matching', monitoring: 'K4 Monitoring'
+        };
+        container.innerHTML = Object.entries(serviceNames).map(([key, label]) => {
+          const s = services[key] || { status: 'unknown' };
+          const color = s.status === 'up' ? '#2e7d32' : s.status === 'down' ? '#c62828' : '#e65100';
+          const icon = s.status === 'up' ? '✅' : '❌';
+          return `<span style="background:#f5f5f5;padding:6px 12px;border-radius:20px;font-size:13px;border-left:3px solid ${color};">
+            ${icon} ${label} <span style="color:${color};font-weight:600;">${s.status}</span>
+          </span>`;
+        }).join('');
+        if (!result.services || Object.values(result.services).every(s => s.status === 'down')) {
+          container.innerHTML += '<span style="color:#666;font-size:12px;display:block;margin-top:8px;">⚠️ Semua service belum live - sistem berjalan dengan data lokal (fallback mode)</span>';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function syncFromK2() {
+      const resultDiv = document.getElementById('sync-result');
+      resultDiv.innerHTML = '<span style="color:#666;font-size:13px;">⏳ Sync proyek dari Kelompok 2...</span>';
+      try {
+        const res = await fetch('/api/integration/sync-projects', { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+          resultDiv.innerHTML = `<span style="color:#2e7d32;font-size:13px;">✅ ${result.message} | Notifikasi: ${result.notified_users?.length || 0} user</span>`;
+          loadProjects();
+        } else {
+          resultDiv.innerHTML = `<span style="color:#e65100;font-size:13px;">⚠️ ${result.message}</span>`;
+        }
+      } catch (e) {
+        resultDiv.innerHTML = `<span style="color:#c62828;font-size:13px;">❌ ${e.message}</span>`;
+      }
+    }
+
+    // Load user
+    async function loadUser() {
+      try {
+        const res = await fetch('/api/users/me');
+        const { data } = await res.json();
+        document.getElementById('user-name').textContent = data.name;
+        document.getElementById('user-email').textContent = '📧 ' + data.email;
+        document.getElementById('user-phone').textContent = '📱 ' + (data.phone || '-');
+        document.getElementById('user-avatar').textContent = data.name.charAt(0).toUpperCase();
+        const skillsDiv = document.getElementById('user-skills');
+        skillsDiv.innerHTML = (data.skills || []).map(s => `<span class="skill-tag">${s}</span>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // Load projects
+    async function loadProjects() {
+      const list = document.getElementById('projects-list');
+      list.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Memuat...</p>';
+      try {
+        const res = await fetch('/api/projects');
+        const { data } = await res.json();
+        if (!data.length) { list.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Belum ada proyek</p>'; return; }
+        list.innerHTML = data.map(p => `
+          <div class="project-item">
+            <div class="project-title">${p.title}</div>
+            <div class="project-meta">
+              Klien: ${p.client_name || '-'} | Budget: ${p.budget || '-'}
+            </div>
+            <div class="project-skills">
+              ${(p.required_skills || []).map(s => `<span class="skill-tag">${s}</span>`).join('')}
+            </div>
+            <div class="project-meta" style="margin-top:4px;">
+              <span class="status-badge status-${p.status}">${p.status}</span>
+              | ${new Date(p.created_at).toLocaleString('id-ID')}
+            </div>
+            <div class="project-actions">
+              <button class="btn btn-success btn-sm" onclick="triggerAccept(${p.id})">✅ Trigger Acceptance</button>
+              <button class="btn btn-primary btn-sm" onclick="window.location.href='/pengumuman/${p.id}'">📋 Pengumuman</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { list.innerHTML = '<p style="color:red;">Error loading projects</p>'; }
+    }
+
+    // Post proyek
+    async function postProject() {
+      const title = document.getElementById('proj-title').value.trim();
+      const selectedSkills = [...document.querySelectorAll('#skill-checkboxes input:checked')].map(i => i.value);
+      const alertDiv = document.getElementById('post-alert');
+
+      if (!title) { alertDiv.innerHTML = '<div class="alert alert-error">Judul proyek wajib diisi!</div>'; return; }
+      if (!selectedSkills.length) { alertDiv.innerHTML = '<div class="alert alert-error">Pilih minimal 1 skill!</div>'; return; }
+
+      alertDiv.innerHTML = '<div class="alert alert-info">⏳ Memproses dan mengirim notifikasi email...</div>';
+      try {
+        const res = await fetch('/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            description: document.getElementById('proj-desc').value,
+            budget: document.getElementById('proj-budget').value,
+            client_name: document.getElementById('proj-client').value,
+            required_skills: selectedSkills,
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          const n = result.notification_summary;
+          alertDiv.innerHTML = `<div class="alert alert-success">
+            ✅ Proyek berhasil dibuat!<br>
+            📧 Notifikasi: ${n.notified} user dikirimi email, ${n.failed} gagal
+            ${n.notified_users.length ? '<br>Dikirim ke: ' + n.notified_users.map(u => `<strong>${u.name}</strong> (${u.matchedSkills.join(', ')})`).join(', ') : ''}
+            ${n.notified === 0 ? '<br><em style="color:#666;">Tidak ada user dengan ≥2 skill yang cocok</em>' : ''}
+          </div>`;
+          document.getElementById('proj-title').value = '';
+          document.getElementById('proj-desc').value = '';
+          document.getElementById('proj-budget').value = '';
+          document.getElementById('proj-client').value = '';
+          document.querySelectorAll('#skill-checkboxes input').forEach(i => { i.checked = false; i.parentElement.classList.remove('checked'); });
+          loadProjects();
+          loadNotifLog();
+        } else {
+          alertDiv.innerHTML = `<div class="alert alert-error">❌ ${result.error}</div>`;
+        }
+      } catch (e) {
+        alertDiv.innerHTML = `<div class="alert alert-error">❌ Network error: ${e.message}</div>`;
+      }
+    }
+
+    // Trigger acceptance
+    async function triggerAccept(projectId) {
+      if (!confirm('Trigger acceptance email ke master user?')) return;
+      try {
+        const res = await fetch('/api/announcements/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: projectId })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert(`✅ Email acceptance berhasil dikirim ke ${result.data.user.email}!\nCek inbox email tersebut.`);
+          loadProjects();
+          loadNotifLog();
+        } else {
+          alert('❌ ' + result.error);
+        }
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // Delete project
+    async function deleteProject(id) {
+      if (!confirm('Hapus proyek ini?')) return;
+      await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+      loadProjects();
+    }
+
+    // Load notification log
+    async function loadNotifLog() {
+      const logDiv = document.getElementById('notif-log');
+      try {
+        const res = await fetch('/api/notifications');
+        const { data } = await res.json();
+        if (!data.length) { logDiv.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Belum ada log</p>'; return; }
+        logDiv.innerHTML = data.slice(0, 20).map(n => `
+          <div class="log-item">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="${n.status === 'sent' ? 'log-sent' : 'log-failed'}">
+                ${n.status === 'sent' ? '✅' : '❌'} ${n.type}
+              </span>
+              <span style="color:#999;font-size:11px;">${new Date(n.sent_at).toLocaleString('id-ID')}</span>
+            </div>
+            <div style="color:#555;font-size:12px;">→ ${n.user_email}</div>
+            ${n.project_title ? `<div style="color:#999;font-size:11px;">Proyek: ${n.project_title}</div>` : ''}
+          </div>
+        `).join('');
+      } catch (e) { logDiv.innerHTML = '<p style="color:red;">Error</p>'; }
+    }
+
+    // Init
+    loadUser();
+    loadProjects();
+    loadNotifLog();
+    loadIntegrationStatus();
+  </script>
+</body>
+</html>

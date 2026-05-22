@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Freelance Hub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #333; }
+    .navbar { background: linear-gradient(135deg, #b71c1c, #c62828); color: white; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
+    .navbar h1 { font-size: 20px; font-weight: 700; }
+    .navbar a { color: #ffcdd2; text-decoration: none; font-size: 14px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h3 { font-size: 16px; color: #1a237e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eaf6; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
+    input, textarea, select { width: 100%; padding: 9px 11px; border: 1.5px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+    input:focus, textarea:focus { outline: none; border-color: #3f51b5; }
+    .btn { padding: 9px 18px; border: none; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: #3f51b5; color: white; }
+    .btn-primary:hover { background: #303f9f; }
+    .btn-danger { background: #e53935; color: white; }
+    .btn-danger:hover { background: #c62828; }
+    .btn-success { background: #43a047; color: white; }
+    .user-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .user-table th, .user-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f5f5f5; }
+    .user-table th { background: #f5f5f5; font-weight: 600; color: #444; }
+    .user-table tr:hover td { background: #fafafa; }
+    .skill-tag { display: inline-block; background: #e8eaf6; color: #3f51b5; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin: 1px; }
+    .alert { padding: 10px 14px; border-radius: 7px; margin-bottom: 12px; font-size: 13px; }
+    .alert-success { background: #e8f5e9; color: #2e7d32; }
+    .alert-error { background: #ffebee; color: #c62828; }
+    .skills-input-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-cb { display: flex; align-items: center; gap: 5px; background: #f5f5f5; padding: 5px 10px; border-radius: 16px; cursor: pointer; font-size: 12px; }
+    .skill-cb input { width: auto; margin: 0; }
+    .section-title { font-size: 20px; font-weight: 700; color: #b71c1c; margin-bottom: 18px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>🔧 Admin Panel - Kelompok 5</h1>
+    <a href="/">← Dashboard</a>
+  </nav>
+
+  <div class="container">
+    <div class="section-title">⚙️ Manajemen Data</div>
+
+    <div class="card">
+      <h3>👤 Tambah User Dummy</h3>
+      <div id="user-alert"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>Nama *</label><input type="text" id="u-name" placeholder="Nama lengkap"></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="u-email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>No. HP</label><input type="text" id="u-phone" placeholder="081234567890"></div>
+        <div class="form-group"><label>NIK</label><input type="text" id="u-nik" placeholder="16 digit NIK"></div>
+      </div>
+      <div class="form-group">
+        <label>Skills (pilih yang dimiliki user ini)</label>
+        <div class="skills-input-group" id="u-skills-cb"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addUser()">+ Tambah User</button>
+    </div>
+
+    <div class="card">
+      <h3>📋 Daftar User Terdaftar</h3>
+      <div id="users-table-container">
+        <p style="color:#999;">Memuat...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Riwayat PDF Kontrak</h3>
+      <div id="pdf-history">
+        <p style="color:#999;">Memuat...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_SKILLS = [
+      'Documentation', 'Multimedia', 'Event Management', 'Event Planning',
+      'UI/UX Design', 'Frontend', 'Backend', 'Mobile Dev',
+      'Public Speaking', 'Marketing', 'Videografi', 'Fotografi', 'Cooking'
+    ];
+
+    const skillContainer = document.getElementById('u-skills-cb');
+    ALL_SKILLS.forEach(skill => {
+      const label = document.createElement('label');
+      label.className = 'skill-cb';
+      label.innerHTML = `<input type="checkbox" value="${skill}"> ${skill}`;
+      skillContainer.appendChild(label);
+    });
+
+    async function addUser() {
+      const name = document.getElementById('u-name').value.trim();
+      const email = document.getElementById('u-email').value.trim();
+      const skills = [...document.querySelectorAll('#u-skills-cb input:checked')].map(i => i.value);
+      const alertDiv = document.getElementById('user-alert');
+
+      if (!name || !email) { alertDiv.innerHTML = '<div class="alert alert-error">Nama dan email wajib diisi</div>'; return; }
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email, skills,
+            phone: document.getElementById('u-phone').value,
+            nik: document.getElementById('u-nik').value,
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alertDiv.innerHTML = `<div class="alert alert-success">✅ User ${name} berhasil ditambahkan!</div>`;
+          document.getElementById('u-name').value = '';
+          document.getElementById('u-email').value = '';
+          document.getElementById('u-phone').value = '';
+          document.getElementById('u-nik').value = '';
+          document.querySelectorAll('#u-skills-cb input').forEach(i => i.checked = false);
+          loadUsers();
+        } else {
+          alertDiv.innerHTML = `<div class="alert alert-error">❌ ${result.error}</div>`;
+        }
+      } catch (e) { alertDiv.innerHTML = `<div class="alert alert-error">❌ ${e.message}</div>`; }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/users');
+        const { data } = await res.json();
+        const container = document.getElementById('users-table-container');
+        if (!data.length) { container.innerHTML = '<p style="color:#999;">Belum ada user</p>'; return; }
+        container.innerHTML = `
+          <table class="user-table">
+            <thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>Skills</th><th>Aksi</th></tr></thead>
+            <tbody>
+              ${data.map(u => `
+                <tr>
+                  <td>${u.id}</td>
+                  <td><strong>${u.name}</strong></td>
+                  <td>${u.email}</td>
+                  <td>${(u.skills || []).map(s => `<span class="skill-tag">${s}</span>`).join('')}</td>
+                  <td>${u.id !== 1 ? `<button class="btn btn-danger" onclick="deleteUser(${u.id})" style="padding:4px 10px;font-size:12px;">Hapus</button>` : '<span style="color:#999;font-size:12px;">Master User</span>'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (e) { console.error(e); }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Hapus user ini?')) return;
+      await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      loadUsers();
+    }
+
+    async function loadPDFHistory() {
+      try {
+        const res = await fetch('/api/pdf/history');
+        const { data } = await res.json();
+        const container = document.getElementById('pdf-history');
+        if (!data.length) { container.innerHTML = '<p style="color:#999;">Belum ada PDF yang digenerate</p>'; return; }
+        container.innerHTML = `
+          <table class="user-table">
+            <thead><tr><th>ID</th><th>Proyek</th><th>User</th><th>Cloudinary</th><th>Tanggal</th></tr></thead>
+            <tbody>
+              ${data.map(p => `
+                <tr>
+                  <td>${p.id}</td>
+                  <td>${p.project_title}</td>
+                  <td>${p.user_name}</td>
+                  <td>${'<span style="color:#999;">PDF (lokal)</span>'}</td>
+                  <td>${new Date(p.generated_at).toLocaleString('id-ID')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (e) { console.error(e); }
+    }
+
+    loadUsers();
+    loadPDFHistory();
+  </script>
+</body>
+</html>
